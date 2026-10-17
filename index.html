@@ -1,0 +1,452 @@
+<title>Схема маршрутов КТЖ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: Stadler-blue header band, schematic network map left, route + economics panel right; stacks on phones */
+:root{
+  --bg:#EEF3F9; --surface:#FFFFFF; --ink:#0B2346; --muted:#4E6280; --hair:#CFDBEA; --land:#E2EBF5;
+  --navy:#0A3A78; --blue:#1268B3; --lime:#B8D432; --limeInk:#6E8A00; --diesel:#7D8DA6; --transit:#A2AFC4;
+  --good:#2E9E5B; --mid:#D99A00; --bad:#D0473B; --onBand:#FFFFFF;
+  --display:"Montserrat", "Segoe UI", system-ui, sans-serif;
+  --body:"Montserrat", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#06162C; --surface:#0C2445; --ink:#E8F0FA; --muted:#9FB3CC; --hair:#1F3A60; --land:#0F2C52;
+  --navy:#0A2F63; --blue:#4C9BE8; --lime:#C3DD3A; --limeInk:#C3DD3A; --diesel:#8597B2; --transit:#5E7090;
+  --good:#4CC27E; --mid:#F0B429; --bad:#F06A5E; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#06162C; --surface:#0C2445; --ink:#E8F0FA; --muted:#9FB3CC; --hair:#1F3A60; --land:#0F2C52;
+  --navy:#0A2F63; --blue:#4C9BE8; --lime:#C3DD3A; --limeInk:#C3DD3A; --diesel:#8597B2; --transit:#5E7090;
+  --good:#4CC27E; --mid:#F0B429; --bad:#F06A5E; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45;padding-block:0 32px}
+.band{background:linear-gradient(115deg,var(--navy) 0%,var(--blue) 100%);color:var(--onBand);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:22px 18px;border-bottom:4px solid var(--lime)}
+.band .in{max-width:1240px;margin:0 auto}
+.band h1{font-family:var(--display);font-weight:800;font-size:clamp(22px,3.2vw,32px);margin:0;letter-spacing:.005em;text-wrap:balance}
+.band p{margin:6px 0 0;max-width:78ch;opacity:.9}
+.wrap{max-width:1240px;margin:16px auto 0;display:grid;gap:16px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:1fr}}
+.mapbox{background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:10px;min-width:0;display:grid;gap:8px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.mapscroll{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:640px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);padding:2px 4px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:26px;height:0;border-top:3px solid var(--blue)}
+.sw.d{border-top:3px dashed var(--diesel)} .sw.t{border-top:3px dotted var(--transit)} .sw.r{border-top:6px solid var(--lime)}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+.panel{display:grid;gap:12px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:14px;display:grid;gap:10px;min-width:0}
+.card h2{font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:0;color:var(--blue)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--hair);border-radius:6px;padding:7px 8px;width:100%}
+input[type=range]{width:100%;accent-color:var(--blue)}
+:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;font-size:12px;font-weight:600;color:var(--ink);background:var(--bg);border:1px solid var(--hair);border-radius:999px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--blue)}
+button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+button.primary{background:var(--lime);border-color:var(--lime);color:#0B2346}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi{background:var(--bg);border-radius:8px;padding:8px 10px;min-width:0}
+.kpi b{display:block;font-family:var(--mono);font-size:17px;font-weight:500;font-variant-numeric:tabular-nums}
+.kpi small{color:var(--muted);font-size:11px}
+.kpi.hero b{font-size:22px;color:var(--blue)}
+.path{font-size:12px;color:var(--muted);line-height:1.6}
+.path strong{color:var(--ink);font-weight:600}
+.slider{display:grid;gap:2px}
+.slider .lab{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)}
+.slider .lab output{font-family:var(--mono);color:var(--ink)}
+.note{font-size:11.5px;color:var(--muted)}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid currentColor;margin-right:6px}
+.ok{color:var(--good)} .warn{color:var(--mid)} .no{color:var(--bad)}
+.st{cursor:pointer}
+.st text{font-size:11px;font-weight:500;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
+.st.sel circle{stroke:var(--lime);stroke-width:3.5}
+.trip{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:12px;color:var(--muted)}
+.trip b{font-family:var(--mono);color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+/* Польша против Казахстана */
+.vs{display:grid;gap:8px}
+.step{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.6fr) 64px;gap:8px;align-items:center;font-size:12px}
+.step .nm{min-width:0}
+.step .nm small{display:block;color:var(--muted);font-size:10.5px}
+.bar{height:14px;background:var(--bg);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--blue);border-radius:4px}
+.step.first .bar i{background:var(--lime)} .step.last .bar i{background:var(--navy)}
+.step .val{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.step .mult{color:var(--muted);font-size:10.5px;display:block}
+.axis{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.6fr) 64px;gap:8px;font-size:10px;color:var(--muted)}
+.axis div:nth-child(2){display:flex;justify-content:space-between}
+.grid2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:920px){.grid2{grid-template-columns:1fr}}
+.grid2 .card .slider{max-width:none}
+/* Гонка Польша против Казахстана */
+.racehead{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-start}
+.racehead>div{min-width:0;flex:1 1 420px}
+.racehead p{margin:4px 0 0;max-width:90ch}
+#race{min-width:560px}
+.lanes{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.lanes{grid-template-columns:1fr}}
+.lane{display:grid;gap:6px;min-width:0}
+.lanetitle{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;font-size:12px;color:var(--muted)}
+.tag{font-weight:700;font-size:12px;padding:2px 8px;border-radius:4px;color:#fff}
+.tag.pl{background:var(--navy)} .tag.kz{background:var(--blue)}
+.payrow{display:grid;grid-template-columns:1fr 64px;gap:8px;align-items:center}
+.paybar{height:18px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--hair)}
+.paybar i{display:block;height:100%;width:0;background:var(--lime)}
+.payrow b{font-family:var(--mono);font-weight:500;text-align:right;font-variant-numeric:tabular-nums}
+.month{font-size:12px;color:var(--muted)} .month b{font-family:var(--mono);color:var(--ink)}
+.race svg text{font-family:var(--body)}
+</style>
+
+<div class="band"><div class="in">
+  <h1>Схема маршрутов КТЖ</h1>
+  <p>Выберите станции отправления и прибытия. Схема проложит путь по сети, посчитает окупаемость алюминиевого кузова, сравнит его с польским кейсом Stadler и покажет, где на сети алюминий выгоднее всего.</p>
+</div></div>
+
+<div class="wrap">
+  <div class="grid">
+    <div class="mapbox">
+      <div class="toolbar">
+        <button id="btnHeat" type="button" aria-pressed="false">Тепловая карта выгоды</button>
+        <button id="btnTrain" type="button" class="primary">Запустить поезд</button>
+        <div class="trip" id="trip" hidden>
+          <span>Пройдено: <b id="tKm">0</b> км</span>
+          <span>Сэкономлено за рейс: <b id="tKzt">0</b> тыс. KZT</span>
+          <span>CO₂: <b id="tCo2">0</b> кг</span>
+        </div>
+      </div>
+      <div class="mapscroll"><svg id="map" viewBox="0 0 1000 560" role="img" aria-label="Схема железных дорог Казахстана"></svg></div>
+      <div class="legend" id="legNet">
+        <span><i class="sw"></i>электрифицировано</span>
+        <span><i class="sw d"></i>тепловоз или нет данных</span>
+        <span><i class="sw t"></i>транзит через Россию</span>
+        <span><i class="sw r"></i>выбранный маршрут</span>
+      </div>
+      <div class="legend" id="legHeat" hidden>
+        <span><i class="dot" style="background:var(--good)"></i>окупается до 15 лет</span>
+        <span><i class="dot" style="background:var(--mid)"></i>15 до 30 лет</span>
+        <span><i class="dot" style="background:var(--bad)"></i>более 30 лет</span>
+        <span>Станции: окупаемость поезда от выбранной станции отправления. Перегоны: экономия на поезд-км.</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="card">
+        <h2>Маршрут</h2>
+        <div class="row2">
+          <label for="from">Отправление<select id="from"></select></label>
+          <label for="to">Прибытие<select id="to"></select></label>
+        </div>
+        <div class="presets" aria-label="Маршруты вагонов Stadler">
+          <button type="button" data-p="AST,ALM">Астана–Алматы</button>
+          <button type="button" data-p="AST,SHY">Астана–Шымкент</button>
+          <button type="button" data-p="AST,SEM">Астана–Семей</button>
+          <button type="button" data-p="AST,ATY">Астана–Атырау</button>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><b id="kDist">0</b><small>км по сети (оценка)</small></div>
+          <div class="kpi"><b id="kElec">0</b><small>электрифицировано</small></div>
+          <div class="kpi"><b id="kTime">0</b><small id="kTimeLab">в пути при 75 км/ч (оценка)</small></div>
+          <div class="kpi"><b id="kStops">0</b><small>остановок + снижений скорости</small></div>
+        </div>
+        <div class="path" id="path"></div>
+      </div>
+
+      <div class="card">
+        <h2>Алюминиевый кузов на этом маршруте</h2>
+        <div class="kpis">
+          <div class="kpi hero"><b id="kPay">0</b><small>окупаемость доплаты, лет</small></div>
+          <div class="kpi hero"><b id="kSave">0</b><small>экономия в год, млн KZT</small></div>
+          <div class="kpi"><b id="kMWh">0</b><small>МВт·ч электроэнергии в год</small></div>
+          <div class="kpi"><b id="kFuel">0</b><small>т дизеля в год</small></div>
+          <div class="kpi"><b id="kNPV">0</b><small>NPV за 30 лет, млн KZT</small></div>
+          <div class="kpi"><b id="kCO2">0</b><small>т CO₂ в год</small></div>
+        </div>
+        <div id="verdict" class="note"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card race">
+    <div class="racehead">
+      <div>
+        <h2>Польша против Казахстана: один год работы поезда</h2>
+        <p class="note">Верхний поезд из кейса Stadler, нижний на выбранном маршруте КТЖ. Каждая полоса показывает 100 км пути: вспышка на остановке означает разгон, на котором легкий кузов экономит энергию. Ниже видно, какую долю доплаты за алюминий каждый поезд вернул за прошедшие месяцы.</p>
+      </div>
+      <button id="btnRace" type="button" class="primary">Показать год работы</button>
+    </div>
+    <div class="mapscroll"><svg id="race" viewBox="0 0 1000 200" role="img" aria-label="Сравнение поездов Польши и Казахстана на 100 км пути"></svg></div>
+    <div class="lanes">
+      <div class="lane">
+        <div class="lanetitle"><span class="tag pl">Польша, кейс Stadler</span><span id="rPlInfo"></span></div>
+        <div class="payrow"><div class="paybar"><i id="rPlBar"></i></div><b id="rPlPct">0%</b></div>
+        <div class="note" id="rPlNote"></div>
+      </div>
+      <div class="lane">
+        <div class="lanetitle"><span class="tag kz">Казахстан, <span id="rKzName"></span></span><span id="rKzInfo"></span></div>
+        <div class="payrow"><div class="paybar"><i id="rKzBar"></i></div><b id="rKzPct">0%</b></div>
+        <div class="note" id="rKzNote"></div>
+      </div>
+    </div>
+    <div class="month">Прошло: <b id="rMonth">12</b> мес.</div>
+  </div>
+
+  <div class="grid2">
+      <div class="card">
+        <h2>Почему окупаемость отличается: шаг за шагом</h2>
+        <p class="note">Как окупаемость кейса Stadler (0,93 года) превращается в окупаемость на выбранном маршруте, если по очереди заменять польские условия на казахстанские. Шкала логарифмическая.</p>
+        <div class="vs" id="vs"></div>
+        <div class="axis"><div></div><div><span>0,5</span><span>5</span><span>50</span><span>500 лет</span></div><div></div></div>
+      </div>
+
+      <div class="card">
+        <h2>Допущения</h2>
+        <div class="slider"><div class="lab"><span>Облегчение вагона, т</span><output id="oDm"></output></div><input id="dm" type="range" min="2" max="9" step="0.5" value="5"></div>
+        <div class="slider"><div class="lab"><span>Доплата за вагон, млн KZT</span><output id="oPrem"></output></div><input id="prem" type="range" min="1" max="15" step="0.1" value="9.3"></div>
+        <div class="slider"><div class="lab"><span>Тариф на тягу, KZT/кВт·ч</span><output id="oTar"></output></div><input id="tar" type="range" min="10" max="60" step="1" value="20"></div>
+        <div class="slider"><div class="lab"><span>Рекуперация, % тормозной энергии</span><output id="oReg"></output></div><input id="reg" type="range" min="0" max="75" step="5" value="40"></div>
+        <div class="slider"><div class="lab"><span>Рост цен на энергию, % в год</span><output id="oGr"></output></div><input id="gr" type="range" min="0" max="10" step="0.5" value="2"></div>
+        <p class="note">Поезд из 15 вагонов. Дизель 350 000 KZT/т, расход тепловоза 250 г/кВт·ч, КПД электротяги 85%, ставка дисконтирования 12%, CO₂ 0,7 кг/кВт·ч и 3,17 кг/кг дизеля. Расстояния рассчитаны по координатам станций и откалиброваны по маршруту Астана–Алматы (1 305 км); электрификация участков частично оценена. Кейс Stadler: 5-вагонный электропоезд, −35 т, 15 остановок, 245 000 км в год, 1,2 PLN ≈ 139,8 KZT за кВт·ч, доплата 400 000 PLN ≈ 46,6 млн KZT. Курс НБ РК на 17.10.2026: 1 USD = 452,12 KZT, 1 PLN = 116,53 KZT.</p>
+      </div>
+  </div>
+</div>
+
+<script>
+const N={
+AST:["Астана",51.17,71.45,8,-6,"start"],KAR:["Караганда",49.80,73.10,8,4,"start"],MOI:["Мойынты",47.19,73.36,-8,-4,"end"],
+SSH:["Сары-Шаган",46.12,73.62,8,4,"start"],SHU:["Шу",43.60,73.76,8,-5,"start"],ALM:["Алматы",43.25,76.95,0,16,"middle"],
+TAR:["Тараз",42.90,71.37,0,16,"middle"],ARY:["Арысь",42.43,68.80,-8,-5,"end"],SHY:["Шымкент",42.32,69.59,8,12,"start"],
+TUR:["Туркестан",43.30,68.25,-8,0,"end"],KZO:["Кызылорда",44.85,65.51,-8,10,"end"],ARL:["Аральск",46.80,61.67,-8,10,"end"],
+SAK:["Саксаульская",47.08,61.17,6,-7,"start"],SHA:["Шалкар",47.83,59.62,-8,-4,"end"],KAN:["Кандыагаш",49.47,57.42,8,4,"start"],
+AKT:["Актобе",50.28,57.17,-8,-4,"end"],KHR:["Хромтау",50.25,58.43,8,-6,"start"],MAK:["Макат",47.65,53.32,8,-4,"start"],
+ATY:["Атырау",47.10,51.92,-8,4,"end"],BEI:["Бейнеу",45.32,55.20,8,4,"start"],AKU:["Мангышлак (Актау)",43.65,51.17,8,12,"start"],
+URA:["Уральск",51.23,51.37,0,-10,"middle"],TOB:["Тобол",52.70,62.58,-8,10,"end"],KOS:["Костанай",53.21,63.62,8,-5,"start"],
+ESI:["Есиль",51.96,66.40,0,-10,"middle"],ARK:["Аркалык",50.25,66.91,8,4,"start"],ZHE:["Жезказган",47.78,67.71,8,4,"start"],
+KOK:["Кокшетау",53.28,69.38,-8,4,"end"],PET:["Петропавловск",54.87,69.15,8,4,"start"],EKI:["Экибастуз",51.72,75.32,8,4,"start"],
+PAV:["Павлодар",52.29,76.97,-8,-6,"end"],SEM:["Семей",50.41,80.25,8,4,"start"],OSK:["Усть-Каменогорск",49.95,82.61,-4,14,"middle"],
+AYA:["Аягоз",47.97,80.44,8,4,"start"],AKG:["Актогай",46.95,79.66,-8,-4,"end"],DOS:["Достык",45.25,82.48,0,16,"middle"],
+TAL:["Талдыкорган",45.02,78.37,8,4,"start"],KUL:["Кулунда (РФ)",52.57,78.94,8,4,"start"]};
+const E=[["AST","KAR",1],["KAR","MOI",1],["MOI","SSH",1],["SSH","SHU",1],["SHU","ALM",1],["SHU","TAR",1],["TAR","ARY",1],["ARY","SHY",1],
+["ARY","TUR",0],["TUR","KZO",0],["KZO","ARL",0],["ARL","SAK",0],["SAK","SHA",0],["SAK","ZHE",0],["SHA","KAN",0],["SHA","BEI",0],
+["KAN","AKT",0],["KAN","MAK",0],["MAK","ATY",0],["MAK","BEI",0],["BEI","AKU",0],["AKT","KHR",0],["KHR","TOB",0],["TOB","KOS",0.5],
+["TOB","ESI",1],["ESI","AST",1],["ESI","ARK",0],["ARK","ZHE",0],["ZHE","KAR",0.5],["AST","KOK",1],["KOK","PET",1],["AST","EKI",1],
+["EKI","PAV",0.5],["PAV","KUL",0,1],["KUL","SEM",0,1],["MOI","AKG",0],["AKG","DOS",0],["AKG","AYA",0],["AYA","SEM",0],["SEM","OSK",0],
+["AKG","TAL",0],["TAL","ALM",0],["URA","AKT",0,1]];
+const USD=452.12, PLN=116.53, KX=35, LAT0=55.8, LON0=45.6, CO=Math.cos(48*Math.PI/180);
+const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+const P0=(lon,lat)=>[(lon-LON0)*KX*CO+8,(LAT0-lat)*KX];
+const px=id=>P0(N[id][2],N[id][1]);
+function gc(a,b){const R=6371,t=Math.PI/180,l1=N[a][1]*t,o1=N[a][2]*t,l2=N[b][1]*t,o2=N[b][2]*t;
+ const h=Math.sin((l2-l1)/2)**2+Math.cos(l1)*Math.cos(l2)*Math.sin((o2-o1)/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
+const cal=["AST","KAR","MOI","SSH","SHU","ALM"];let cs=0;for(let i=0;i<cal.length-1;i++)cs+=gc(cal[i],cal[i+1]);const SIN=1305/cs;
+E.forEach(e=>e.km=gc(e[0],e[1])*SIN);
+const adj={};Object.keys(N).forEach(k=>adj[k]=[]);E.forEach((e,i)=>{adj[e[0]].push([e[1],i]);adj[e[1]].push([e[0],i]);});
+function dijkstra(a){const d={},p={},q=new Set(Object.keys(N));Object.keys(N).forEach(k=>d[k]=Infinity);d[a]=0;
+ while(q.size){let u=null;q.forEach(k=>{if(u===null||d[k]<d[u])u=k});q.delete(u);if(d[u]===Infinity)break;
+  adj[u].forEach(([v,i])=>{const nd=d[u]+E[i].km;if(nd<d[v]){d[v]=nd;p[v]=[u,i];}});}return{d,p};}
+function route(a,b,D){D=D||dijkstra(a);if(D.d[b]===Infinity)return null;const nodes=[b],edges=[];let c=b;
+ while(c!==a){edges.unshift(D.p[c][1]);c=D.p[c][0];nodes.unshift(c);}return{nodes,edges,km:D.d[b]};}
+function share(r){let el=0,unk=0,tr=false;r.edges.forEach(i=>{const e=E[i];if(e[2]===1)el+=e.km;else if(e[2]===0.5){el+=e.km*.5;unk+=e.km;}if(e[3])tr=true;});return{s:el/r.km,unk,tr};}
+
+/* Общая модель энергии. Все параметры явно, чтобы ее можно было пошагово менять в режиме «Польша против Казахстана». */
+function core(o){ // o: L, kmYear, stops, slow, v(км/ч), eShare, rc(доля возврата), dmT(т), tar, prem(KZT), gr, cal
+ const g=9.81,DM=o.dmT*1000,v=o.v/3.6,trips=o.kmYear/o.L;
+ const run=(0.7+0.4)*g*o.dmT*o.L*1000/3.6e6, Ek=0.5*DM*v*v*1.06/3.6e6, brake=o.stops*Ek+o.slow*Ek*0.75;
+ const wEl=(run+brake*(1-o.rc))*o.eShare*o.cal, wD=(run+brake)*(1-o.eShare)*o.cal;
+ const kwh=wEl/0.85, fuelG=wD*250, cost=kwh*o.tar+fuelG*0.35;
+ const yKwh=kwh*trips,yFuel=fuelG*trips/1e6,yCost=cost*trips,co2=(kwh*0.7+fuelG*3.17e-3)*trips/1000;
+ let npv=-o.prem;for(let t=0;t<30;t++)npv+=yCost*Math.pow(1+o.gr/100,t)/Math.pow(1.12,t+1);
+ return{yKwh,yFuel,yCost,co2,trips,pay:o.prem/yCost,npv,perTrip:cost,perTripCo2:(kwh*0.7+fuelG*3.17e-3)};}
+// Польский кейс: калибровка так, чтобы экономия была ровно 357 МВт·ч
+const PL={L:80,kmYear:245000,stops:15,slow:0,v:140,eShare:1,rc:0.3,dmT:35,tar:1.2*PLN,prem:400000*PLN,gr:0,cal:1};
+PL.cal=357000/core(PL).yKwh;
+const SCHED={"AST-ALM":17.2,"AST-SHY":19.3,"AST-SEM":15.9,"AST-ATY":39};
+function sched(a,b){return SCHED[a+"-"+b]||SCHED[b+"-"+a]||null;}
+function ktzParams(L,eShare,P,hs){const h=hs||L/75,trips=8760/(2*h+16)*0.85*2;
+ return{L,kmYear:trips*L,stops:Math.max(1,Math.round(L/130)),slow:Math.round(L/100),v:eShare>0.8?120:100,eShare,
+  rc:P.reg/100*0.8,dmT:P.dm*15,tar:P.tar,prem:P.prem*1e6*15,gr:P.gr,cal:1,h};}
+
+const svg=document.getElementById("map"),NS="http://www.w3.org/2000/svg";
+function el(t,a,parent){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(parent||svg).appendChild(e);return e;}
+const border=[[46.6,48.4],[47.1,49.2],[46.8,49.9],[47.6,50.5],[48.6,50.6],[48.6,51.7],[50.0,51.7],[50.8,51.6],[52.3,51.8],[53.4,51.5],[54.5,51.0],[55.7,50.6],[56.6,51.1],[58.0,51.1],[59.5,50.6],[60.8,50.7],[61.4,51.3],[60.0,51.9],[60.9,52.4],[60.9,53.0],[61.6,53.5],[61.0,53.9],[62.3,54.0],[65.2,54.6],[68.2,55.0],[69.0,55.4],[70.8,55.3],[71.2,54.1],[73.0,54.0],[73.7,53.6],[74.4,53.5],[76.3,54.2],[76.7,53.4],[78.0,52.5],[79.0,51.0],[80.5,50.9],[81.5,50.7],[83.4,51.0],[85.0,50.0],[86.0,49.6],[87.3,49.1],[85.5,47.1],[83.0,47.2],[82.3,45.5],[80.2,44.9],[80.4,43.0],[80.6,42.1],[79.2,42.8],[77.3,43.0],[76.0,42.9],[74.2,43.3],[73.5,42.5],[71.2,42.8],[70.9,42.2],[69.1,41.4],[68.2,40.7],[67.9,41.2],[66.5,41.9],[66.0,42.9],[64.9,43.7],[62.0,43.5],[61.0,44.4],[58.6,45.6],[56.0,45.0],[56.0,41.3],[55.4,41.3],[54.0,42.3],[52.8,42.0],[52.4,42.6],[51.3,43.2],[50.8,44.6],[51.4,45.3],[53.0,45.3],[52.0,46.3],[51.9,47.0],[49.2,46.4],[48.6,46.6],[48.9,47.3],[47.4,47.6]];
+el("polygon",{points:border.map(([lo,la])=>P0(lo,la).join(",")).join(" "),fill:"var(--land)",stroke:"var(--hair)","stroke-width":1.5});
+const gLines=el("g",{}),gHL=el("g",{}),gSt=el("g",{}),gTrain=el("g",{});
+E.forEach(e=>{const[a,b]=[px(e[0]),px(e[1])];
+ e.line=el("line",{x1:a[0],y1:a[1],x2:b[0],y2:b[1],"stroke-width":2.8,"stroke-linecap":"round"},gLines);
+ const tt=el("title",{},e.line);tt.textContent=`${N[e[0]][0]} – ${N[e[1]][0]}: ≈ ${Math.round(e.km)} км, ${e[3]?"транзит через РФ":e[2]===1?"электрифицировано":e[2]===0?"тепловоз":"нет данных об электрификации"}`;});
+const stEls={};let pickNext="from";
+Object.keys(N).forEach(id=>{const[x,y]=px(id),[nm,,,dx,dy,an]=N[id];const g=el("g",{class:"st",tabindex:0,role:"button","aria-label":nm},gSt);
+ g.c=el("circle",{cx:x,cy:y,r:4.8,fill:"var(--surface)",stroke:"var(--navy)","stroke-width":1.8},g);
+ const t=el("text",{x:x+dx,y:y+dy,"text-anchor":an},g);t.textContent=nm;g.tt=el("title",{},g);
+ const pick=()=>{if(pickNext==="from"){F.value=id;pickNext="to";}else{T.value=id;pickNext="from";}update();};
+ g.addEventListener("click",pick);g.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();pick();}});stEls[id]=g;});
+// поезд
+const train=el("g",{visibility:"hidden"},gTrain);
+el("rect",{x:-11,y:-5,width:22,height:10,rx:3,fill:"var(--lime)",stroke:"var(--navy)","stroke-width":1.6},train);
+el("rect",{x:4,y:-3,width:5,height:4,rx:1,fill:"var(--navy)"},train);
+
+const F=document.getElementById("from"),T=document.getElementById("to");
+Object.keys(N).sort((a,b)=>N[a][0].localeCompare(N[b][0],"ru")).forEach(id=>{[F,T].forEach(s=>{const o=document.createElement("option");o.value=id;o.textContent=N[id][0];s.appendChild(o);});});
+let heat=false;
+try{const sv=JSON.parse(localStorage.getItem("ktzRoute")||"null");if(sv&&N[sv[0]]&&N[sv[1]]){F.value=sv[0];T.value=sv[1];}else{F.value="AST";T.value="ATY";}heat=localStorage.getItem("ktzHeat")==="1";}catch(_){F.value="AST";T.value="ATY";}
+document.querySelectorAll("[data-p]").forEach(b=>b.addEventListener("click",()=>{const[a,c]=b.dataset.p.split(",");F.value=a;T.value=c;update();}));
+["dm","prem","tar","reg","gr"].forEach(i=>document.getElementById(i).addEventListener("input",update));[F,T].forEach(s=>s.addEventListener("change",update));
+const btnHeat=document.getElementById("btnHeat"),btnTrain=document.getElementById("btnTrain");
+btnHeat.addEventListener("click",()=>{heat=!heat;try{localStorage.setItem("ktzHeat",heat?"1":"0");}catch(_){}update();});
+const $=id=>document.getElementById(id);
+const fmt=(v,d=1)=>v.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d});
+const css=n=>`var(--${n})`;
+const payColor=p=>p<=15?css("good"):p<=30?css("mid"):css("bad");
+let cur=null; // текущий маршрут для анимации
+
+function readP(){return{dm:+$("dm").value,prem:+$("prem").value,tar:+$("tar").value,reg:+$("reg").value,gr:+$("gr").value};}
+
+function drawNetwork(P){
+ // перегоны
+ const elV=core({...ktzParams(1000,1,P)}).yCost/ (ktzParams(1000,1,P).kmYear),
+       dV=core({...ktzParams(1000,0,P)}).yCost/(ktzParams(1000,0,P).kmYear);
+ E.forEach(e=>{let c,dash="";
+  if(heat){const v=e[2]===1?elV:e[2]===0?dV:(elV+dV)/2;const mx=Math.max(elV,dV);const r=v/mx;c=r>0.85?css("good"):r>0.5?css("mid"):css("bad");}
+  else{c=e[3]?css("transit"):e[2]===1?css("blue"):css("diesel");dash=e[3]?"1 5":e[2]===1?"":"7 5";}
+  e.line.setAttribute("stroke",c);e.line.setAttribute("stroke-dasharray",heat?(e[3]?"1 5":""):dash);e.line.setAttribute("stroke-width",heat?4:2.8);});
+ // станции
+ const D=dijkstra(F.value);
+ Object.keys(N).forEach(id=>{const g=stEls[id];
+  if(heat&&id!==F.value){const r=route(F.value,id,D);if(r){const m=core(ktzParams(r.km,share(r).s,P,sched(F.value,id)));g.c.setAttribute("fill",payColor(m.pay));g.c.setAttribute("r",6);
+    g.tt.textContent=`${N[F.value][0]} → ${N[id][0]}: ${Math.round(r.km)} км, окупаемость ${m.pay>99?"> 99":fmt(m.pay,1)} лет`;}}
+  else{g.c.setAttribute("fill","var(--surface)");g.c.setAttribute("r",4.8);g.tt.textContent=N[id][0];}});
+ $("legNet").hidden=heat;$("legHeat").hidden=!heat;btnHeat.classList.toggle("on",heat);btnHeat.setAttribute("aria-pressed",heat);
+}
+
+function drawVs(r,sh,P){
+ const K=ktzParams(r.km,sh,P),steps=[];let o={...PL};
+ const push=(nm,sub)=>{steps.push({nm,sub,pay:core(o).pay});};
+ push("Кейс Stadler (Польша)","электропоезд, 15 остановок на 80 км, 1,2 PLN");
+ o={...o,tar:K.tar};push("Тариф Казахстана",`${K.tar} KZT вместо ≈ 140 KZT за кВт·ч`);
+ o={...o,L:K.L,stops:K.stops,slow:K.slow,v:K.v};push("Остановки маршрута",`${K.stops} остановок + ${K.slow} снижений на ${Math.round(K.L)} км`);
+ o={...o,rc:K.rc};push("Рекуперация локомотива",`возврат ${P.reg}% тормозной энергии, только на электротяге`);
+ o={...o,eShare:K.eShare};push("Электрификация",`${Math.round(K.eShare*100)}% пути, остальное тепловоз`);
+ o={...o,kmYear:K.kmYear};push("Пробег поезда",`${fmt(K.kmYear/1000,0)} тыс. км в год вместо 245`);
+ o={...o,dmT:K.dmT,prem:K.prem};push("Состав из 15 вагонов",`−${fmt(K.dmT,0)} т, доплата ${fmt(K.prem/1e6,0)} млн KZT`);
+ o={...o,cal:1};const fin=core(o).pay;steps.push({nm:"Итог для маршрута",sub:"модель без поправки на кейс (±10%)",pay:fin,last:true});
+ const lg=v=>Math.max(0,Math.min(100,(Math.log10(Math.max(v,0.5))-Math.log10(0.5))/(Math.log10(500)-Math.log10(0.5))*100));
+ $("vs").innerHTML=steps.map((s,i)=>{const prev=i?steps[i-1].pay:null,m=prev&&!s.last?s.pay/prev:null;
+  return `<div class="step${i===0?" first":""}${s.last?" last":""}"><div class="nm">${s.nm}<small>${s.sub}</small></div>
+  <div class="bar"><i style="width:${lg(s.pay)}%"></i></div>
+  <div class="val">${s.pay>999?"> 999":fmt(s.pay,s.pay<10?2:1)}${m?`<span class="mult">×${fmt(m,m<10?2:1)}</span>`:""}</div></div>`;}).join("");
+}
+
+function update(){
+ stopTrain();
+ const P=readP();
+ $("oDm").textContent=fmt(P.dm,1);$("oPrem").textContent=fmt(P.prem,1);$("oTar").textContent=P.tar;$("oReg").textContent=P.reg+"%";$("oGr").textContent=fmt(P.gr,1)+"%";
+ try{localStorage.setItem("ktzRoute",JSON.stringify([F.value,T.value]));}catch(_){}
+ Object.values(stEls).forEach(g=>g.classList.remove("sel"));stEls[F.value].classList.add("sel");stEls[T.value].classList.add("sel");
+ gHL.innerHTML="";drawNetwork(P);
+ if(F.value===T.value){$("path").textContent="Выберите разные станции отправления и прибытия.";cur=null;
+  ["kDist","kElec","kTime","kStops","kPay","kSave","kMWh","kFuel","kNPV","kCO2"].forEach(k=>$(k).textContent="–");$("verdict").textContent="";$("vs").innerHTML="";stopRace();R=null;rsvg.innerHTML="";return;}
+ const r=route(F.value,T.value);if(!r){$("path").textContent="Между этими станциями нет пути на схеме.";cur=null;return;}
+ const hs=sched(F.value,T.value),sh=share(r),K=ktzParams(r.km,sh.s,P,hs),m=core(K);
+ $("kTimeLab").textContent=hs?"в пути по расписанию КТЖ":"в пути при 75 км/ч (оценка)";
+ r.edges.forEach(i=>{const e=E[i],[a,b]=[px(e[0]),px(e[1])];el("line",{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:"var(--lime)","stroke-width":heat?3:7,"stroke-linecap":"round",opacity:heat?1:.9},gHL);});
+ $("kDist").textContent=fmt(r.km,0);$("kElec").textContent=Math.round(sh.s*100)+"%";$("kTime").textContent=Math.floor(K.h)+" ч "+Math.round((K.h%1)*60)+" мин";
+ $("kStops").textContent=K.stops+" + "+K.slow;
+ $("kPay").textContent=m.pay>99?"> 99":fmt(m.pay,1);$("kSave").textContent=fmt(m.yCost/1e6,2);$("kMWh").textContent=fmt(m.yKwh/1e3,0);$("kFuel").textContent=fmt(m.yFuel,1);
+ $("kNPV").textContent=fmt(m.npv/1e6,1);$("kCO2").textContent=fmt(m.co2,0);
+ const cls=m.pay<=10?"ok":m.pay<=25?"warn":"no",txt=m.pay<=10?"окупается до 10 лет":m.pay<=25?"окупается за 10 до 25 лет":"энергией не окупается за разумный срок";
+ $("verdict").innerHTML=`<span class="pill ${cls}">${txt}</span>Экономия ≈ ${fmt(m.yCost/USD/1e3,1)} тыс. USD в год; доплата за поезд ${fmt(P.prem*15,0)} млн KZT (≈ ${fmt(P.prem*15e6/USD/1e3,0)} тыс. USD).`;
+ $("path").innerHTML="<strong>Путь:</strong> "+r.nodes.map(n=>N[n][0]).join(" → ")+(sh.tr?"<br>Маршрут идет транзитом через территорию России.":"")+(sh.unk>0?`<br>Для ${fmt(sh.unk,0)} км нет данных об электрификации, засчитано как 50%.`:"");
+ drawVs(r,sh.s,P);
+ drawRace(r,K,m);
+ cur={pts:r.nodes.map(px),km:r.km,perTrip:m.perTrip,perTripCo2:m.perTripCo2};
+}
+
+/* Гонка: Польша против Казахстана на 100 км пути и год окупаемости */
+const rsvg=$("race");const X0=120,X1=960,LY=[62,150];let R=null,rraf=null;
+function rel(t,a,p){return el(t,a,p||rsvg);}
+function drawRace(r,K,m){
+ stopRace();rsvg.innerHTML="";
+ const pl=core(PL);
+ const plStops=PL.stops/PL.L*100, kzStops=K.stops/K.L*100, kzSlow=K.slow/K.L*100;
+ const plK=pl.yKwh/PL.kmYear*100, plT=pl.yCost/PL.kmYear*100, kzK=m.yKwh/K.kmYear*100, kzD=m.yFuel*1e6/K.kmYear*100/1000, kzT=m.yCost/K.kmYear*100;
+ const lanes=[{name:"Польша",y:LY[0],ev:[],col:"var(--navy)"},{name:"Казахстан",y:LY[1],ev:[],col:"var(--blue)"}];
+ const nPl=Math.round(plStops);for(let i=0;i<nPl;i++)lanes[0].ev.push({x:X0+(i+.5)*(X1-X0)/nPl,type:"stop"});
+ const nSt=Math.round(kzStops),nSl=Math.round(kzSlow),tot=nSt+nSl;const types=[];for(let i=0;i<tot;i++)types.push(i%2===0&&types.filter(t=>t==="stop").length<nSt?"stop":(types.filter(t=>t==="slow").length<nSl?"slow":"stop"));
+ types.forEach((t,i)=>lanes[1].ev.push({x:X0+(i+.5)*(X1-X0)/Math.max(1,tot),type:t}));
+ lanes.forEach((ln,li)=>{
+  rel("text",{x:10,y:ln.y+4,"font-size":13,"font-weight":700,fill:"var(--ink)"}).textContent=ln.name;
+  rel("line",{x1:X0,y1:ln.y,x2:X1,y2:ln.y,stroke:"var(--hair)","stroke-width":6,"stroke-linecap":"round"});
+  rel("line",{x1:X0,y1:ln.y,x2:X1,y2:ln.y,stroke:ln.col,"stroke-width":2,"stroke-dasharray":"2 10",opacity:.6});
+  [0,50,100].forEach(k=>{const x=X0+(X1-X0)*k/100;rel("text",{x,y:ln.y+26,"font-size":10,"text-anchor":"middle",fill:"var(--muted)"}).textContent=k+" км";});
+  ln.ev.forEach(e=>{if(e.type==="stop"){rel("rect",{x:e.x-3,y:ln.y-14,width:6,height:28,rx:2,fill:"var(--surface)",stroke:ln.col,"stroke-width":1.6});}
+   else{rel("path",{d:`M${e.x-6},${ln.y-15} L${e.x+6},${ln.y-15} L${e.x},${ln.y-6} Z`,fill:"var(--mid)"});}});
+  ln.g=rel("g",{});rel("rect",{x:-16,y:-7,width:32,height:14,rx:4,fill:"var(--lime)",stroke:"var(--navy)","stroke-width":1.6},ln.g);rel("rect",{x:6,y:-4,width:7,height:5,rx:1,fill:"var(--navy)"},ln.g);
+  ln.fx=rel("g",{});
+ });
+ const kzName=`${N[F.value][0]}–${N[T.value][0]}`;
+ rel("text",{x:X1,y:LY[0]-22,"font-size":11,"text-anchor":"end",fill:"var(--muted)"}).textContent=`${fmt(plStops,1)} остановки на 100 км`;
+ rel("text",{x:X1,y:LY[1]-22,"font-size":11,"text-anchor":"end",fill:"var(--muted)"}).textContent=`${fmt(kzStops,1)} остановки + ${fmt(kzSlow,1)} снижения скорости на 100 км`;
+ $("rKzName").textContent=kzName;
+ $("rPlInfo").textContent=`экономия на 100 км: ${fmt(plK,0)} кВт·ч ≈ ${fmt(plT,0)} KZT`;
+ $("rKzInfo").textContent=`экономия на 100 км: ${fmt(kzK,0)} кВт·ч${kzD>0.05?` + ${fmt(kzD,1)} кг дизеля`:""} ≈ ${fmt(kzT,0)} KZT`;
+ R={lanes,payPl:pl.pay,payKz:m.pay,premPl:PL.prem,premKz:K.prem,ratio:plT/kzT};
+ setRaceState(12,true);
+}
+function setRaceState(month,rest){
+ if(!R)return;const y=month/12;
+ const pPl=Math.min(100,y/R.payPl*100),pKz=Math.min(100,y/R.payKz*100);
+ $("rPlBar").style.width=pPl+"%";$("rKzBar").style.width=Math.max(pKz,0.6)+"%";
+ $("rPlPct").textContent=fmt(pPl,pPl<10?1:0)+"%";$("rKzPct").textContent=fmt(pKz,pKz<10?1:0)+"%";
+ $("rMonth").textContent=fmt(month,month<12&&!rest?1:0);
+ const plMonths=R.payPl*12;
+ $("rPlNote").textContent=y>=R.payPl?`Доплата ${fmt(R.premPl/1e6,1)} млн KZT вернулась за ${fmt(plMonths,1)} мес.`:`Возвращено ${fmt(R.premPl/1e6*pPl/100,1)} из ${fmt(R.premPl/1e6,1)} млн KZT доплаты.`;
+ $("rKzNote").textContent=`Возвращено ${fmt(R.premKz/1e6*pKz/100,1)} из ${fmt(R.premKz/1e6,0)} млн KZT доплаты. Полный возврат через ${R.payKz>99?"более 99":fmt(R.payKz,1)} лет. На 100 км поезд экономит в ${fmt(R.ratio,0)} раз меньше денег, чем в Польше.`;
+ if(rest)R.lanes.forEach(ln=>ln.g.setAttribute("transform",`translate(${X1},${ln.y})`));
+}
+function stopRace(){if(rraf)cancelAnimationFrame(rraf);rraf=null;$("btnRace").textContent="Показать год работы";}
+function flash(ln,x){const c=rel("circle",{cx:x,cy:ln.y,r:6,fill:"none",stroke:"var(--lime)","stroke-width":3},ln.fx);const t0=performance.now();
+ const f=ts=>{const k=(ts-t0)/600;if(k>=1){c.remove();return;}c.setAttribute("r",6+k*22);c.setAttribute("opacity",1-k);requestAnimationFrame(f);};requestAnimationFrame(f);}
+$("btnRace").addEventListener("click",()=>{
+ if(rraf){stopRace();setRaceState(12,true);return;}if(!R)return;
+ if(reduce){setRaceState(12,true);return;}
+ $("btnRace").textContent="Остановить";
+ const DUR=12000,SPEED=(X1-X0)/2.2; // 100 км за 2,2 с без остановок
+ R.lanes.forEach(ln=>{ln.x=X0;ln.i=0;ln.pause=0;});let t0=null,last=null;
+ const step=ts=>{if(!t0){t0=ts;last=ts;}const dt=(ts-last)/1000;last=ts;const el_=ts-t0;
+  R.lanes.forEach(ln=>{
+   if(ln.pause>0){ln.pause-=dt;}
+   else{ln.x+=SPEED*dt;const e=ln.ev[ln.i];
+    if(e&&ln.x>=e.x){ln.x=e.x;ln.pause=e.type==="stop"?0.45:0.22;flash(ln,e.x);ln.i++;}
+    if(ln.x>=X1){ln.x=X0;ln.i=0;}}
+   ln.g.setAttribute("transform",`translate(${ln.x},${ln.y})`);});
+  setRaceState(Math.min(12,el_/DUR*12),false);
+  if(el_<DUR)rraf=requestAnimationFrame(step);else{rraf=null;$("btnRace").textContent="Показать год работы";setRaceState(12,true);}};
+ rraf=requestAnimationFrame(step);});
+
+/* Анимация поезда */
+let raf=null;
+function stopTrain(){if(raf)cancelAnimationFrame(raf);raf=null;train.setAttribute("visibility","hidden");btnTrain.textContent="Запустить поезд";}
+function at(pts,f){const seg=[];let tot=0;for(let i=1;i<pts.length;i++){const l=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);seg.push(l);tot+=l;}
+ let d=f*tot;for(let i=0;i<seg.length;i++){if(d<=seg[i]||i===seg.length-1){const t=seg[i]?Math.min(1,d/seg[i]):0,a=pts[i],b=pts[i+1];
+  return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI];}d-=seg[i];}return[...pts[0],0];}
+function showTrip(f){$("tKm").textContent=fmt(cur.km*f,0);$("tKzt").textContent=fmt(cur.perTrip*f/1000,1);$("tCo2").textContent=fmt(cur.perTripCo2*f,0);}
+btnTrain.addEventListener("click",()=>{
+ if(raf){stopTrain();return;}if(!cur)return;
+ $("trip").hidden=false;
+ if(reduce){showTrip(1);const[x,y]=at(cur.pts,1);train.setAttribute("transform",`translate(${x},${y})`);train.setAttribute("visibility","visible");return;}
+ const dur=Math.min(14000,Math.max(5000,cur.km*5));let t0=null;train.setAttribute("visibility","visible");btnTrain.textContent="Остановить";
+ const step=ts=>{if(!t0)t0=ts;const f=Math.min(1,(ts-t0)/dur);const[x,y,ang]=at(cur.pts,f);
+  train.setAttribute("transform",`translate(${x},${y}) rotate(${ang})`);showTrip(f);
+  if(f<1)raf=requestAnimationFrame(step);else{raf=null;btnTrain.textContent="Запустить поезд";}};
+ raf=requestAnimationFrame(step);});
+update();
+</script>
