@@ -1,3 +1,11 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0A3A78">
+</head>
+<body>
 <title>Схема маршрутов КТЖ</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -104,6 +112,36 @@ button.primary{background:var(--lime);border-color:var(--lime);color:#0B2346}
 .payrow b{font-family:var(--mono);font-weight:500;text-align:right;font-variant-numeric:tabular-nums}
 .month{font-size:12px;color:var(--muted)} .month b{font-family:var(--mono);color:var(--ink)}
 .race svg text{font-family:var(--body)}
+/* Смартфоны */
+.st .hit{fill:transparent;stroke:none}
+@media (max-width:640px){
+  body{font-size:15px}
+  .band{padding-block:16px 14px}
+  .band p{font-size:13px}
+  .wrap{margin-top:12px;gap:12px}
+  .mapbox,.card{padding:12px}
+  svg,#race{min-width:0}
+  #map .st text{font-size:30px;stroke-width:7px}
+  #map .st:not(.major):not(.sel) text{display:none}
+  #map .st circle.dotc{r:9}
+  #race text{font-size:15px}
+  button{font-size:14px;padding:10px 14px;min-height:42px}
+  .toolbar{gap:8px}
+  .toolbar button{flex:1 1 auto}
+  .presets button{flex:1 1 calc(50% - 6px)}
+  select{font-size:16px;padding:10px}
+  input[type=range]{height:32px}
+  .slider .lab{font-size:13px}
+  .kpis{gap:6px}
+  .kpi b{font-size:16px} .kpi.hero b{font-size:20px}
+  .step{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 54px;font-size:12px}
+  .axis{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 54px}
+  .legend{font-size:12px;gap:8px 12px}
+  .trip{font-size:13px}
+  .lanes{gap:12px}
+  .racehead button{width:100%}
+}
+
 </style>
 
 <div class="band"><div class="in">
@@ -284,9 +322,12 @@ const gLines=el("g",{}),gHL=el("g",{}),gSt=el("g",{}),gTrain=el("g",{});
 E.forEach(e=>{const[a,b]=[px(e[0]),px(e[1])];
  e.line=el("line",{x1:a[0],y1:a[1],x2:b[0],y2:b[1],"stroke-width":2.8,"stroke-linecap":"round"},gLines);
  const tt=el("title",{},e.line);tt.textContent=`${N[e[0]][0]} – ${N[e[1]][0]}: ≈ ${Math.round(e.km)} км, ${e[3]?"транзит через РФ":e[2]===1?"электрифицировано":e[2]===0?"тепловоз":"нет данных об электрификации"}`;});
+const MAJOR=new Set(["AST","ALM","SHY","ATY","SEM","KAR","AKT","KZO","PET","AKU"]);
 const stEls={};let pickNext="from";
 Object.keys(N).forEach(id=>{const[x,y]=px(id),[nm,,,dx,dy,an]=N[id];const g=el("g",{class:"st",tabindex:0,role:"button","aria-label":nm},gSt);
- g.c=el("circle",{cx:x,cy:y,r:4.8,fill:"var(--surface)",stroke:"var(--navy)","stroke-width":1.8},g);
+ el("circle",{cx:x,cy:y,r:16,class:"hit"},g);
+ g.c=el("circle",{cx:x,cy:y,r:4.8,class:"dotc",fill:"var(--surface)",stroke:"var(--navy)","stroke-width":1.8},g);
+ if(MAJOR.has(id))g.classList.add("major");
  const t=el("text",{x:x+dx,y:y+dy,"text-anchor":an},g);t.textContent=nm;g.tt=el("title",{},g);
  const pick=()=>{if(pickNext==="from"){F.value=id;pickNext="to";}else{T.value=id;pickNext="from";}update();};
  g.addEventListener("click",pick);g.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();pick();}});stEls[id]=g;});
@@ -372,10 +413,11 @@ function update(){
 }
 
 /* Гонка: Польша против Казахстана на 100 км пути и год окупаемости */
-const rsvg=$("race");const X0=120,X1=960,LY=[62,150];let R=null,rraf=null;
+const rsvg=$("race");let X0=120,X1=960;const LY=[62,150];let R=null,rraf=null;
 function rel(t,a,p){return el(t,a,p||rsvg);}
 function drawRace(r,K,m){
  stopRace();rsvg.innerHTML="";
+ const MOB=window.innerWidth<640;X0=MOB?24:120;X1=MOB?496:960;rsvg.setAttribute("viewBox",MOB?"0 0 520 200":"0 0 1000 200");
  const pl=core(PL);
  const plStops=PL.stops/PL.L*100, kzStops=K.stops/K.L*100, kzSlow=K.slow/K.L*100;
  const plK=pl.yKwh/PL.kmYear*100, plT=pl.yCost/PL.kmYear*100, kzK=m.yKwh/K.kmYear*100, kzD=m.yFuel*1e6/K.kmYear*100/1000, kzT=m.yCost/K.kmYear*100;
@@ -384,10 +426,10 @@ function drawRace(r,K,m){
  const nSt=Math.round(kzStops),nSl=Math.round(kzSlow),tot=nSt+nSl;const types=[];for(let i=0;i<tot;i++)types.push(i%2===0&&types.filter(t=>t==="stop").length<nSt?"stop":(types.filter(t=>t==="slow").length<nSl?"slow":"stop"));
  types.forEach((t,i)=>lanes[1].ev.push({x:X0+(i+.5)*(X1-X0)/Math.max(1,tot),type:t}));
  lanes.forEach((ln,li)=>{
-  rel("text",{x:10,y:ln.y+4,"font-size":13,"font-weight":700,fill:"var(--ink)"}).textContent=ln.name;
+  if(!MOB)rel("text",{x:10,y:ln.y+4,"font-size":13,"font-weight":700,fill:"var(--ink)"}).textContent=ln.name;
   rel("line",{x1:X0,y1:ln.y,x2:X1,y2:ln.y,stroke:"var(--hair)","stroke-width":6,"stroke-linecap":"round"});
   rel("line",{x1:X0,y1:ln.y,x2:X1,y2:ln.y,stroke:ln.col,"stroke-width":2,"stroke-dasharray":"2 10",opacity:.6});
-  [0,50,100].forEach(k=>{const x=X0+(X1-X0)*k/100;rel("text",{x,y:ln.y+26,"font-size":10,"text-anchor":"middle",fill:"var(--muted)"}).textContent=k+" км";});
+  [0,50,100].forEach(k=>{const x=X0+(X1-X0)*k/100;rel("text",{x,y:ln.y+26,"font-size":10,"text-anchor":k===0?"start":k===100?"end":"middle",fill:"var(--muted)"}).textContent=k+" км";});
   ln.ev.forEach(e=>{if(e.type==="stop"){rel("rect",{x:e.x-3,y:ln.y-14,width:6,height:28,rx:2,fill:"var(--surface)",stroke:ln.col,"stroke-width":1.6});}
    else{rel("path",{d:`M${e.x-6},${ln.y-15} L${e.x+6},${ln.y-15} L${e.x},${ln.y-6} Z`,fill:"var(--mid)"});}});
   ln.g=rel("g",{});rel("rect",{x:-16,y:-7,width:32,height:14,rx:4,fill:"var(--lime)",stroke:"var(--navy)","stroke-width":1.6},ln.g);rel("rect",{x:6,y:-4,width:7,height:5,rx:1,fill:"var(--navy)"},ln.g);
@@ -411,7 +453,7 @@ function setRaceState(month,rest){
  const plMonths=R.payPl*12;
  $("rPlNote").textContent=y>=R.payPl?`Доплата ${fmt(R.premPl/1e6,1)} млн KZT вернулась за ${fmt(plMonths,1)} мес.`:`Возвращено ${fmt(R.premPl/1e6*pPl/100,1)} из ${fmt(R.premPl/1e6,1)} млн KZT доплаты.`;
  $("rKzNote").textContent=`Возвращено ${fmt(R.premKz/1e6*pKz/100,1)} из ${fmt(R.premKz/1e6,0)} млн KZT доплаты. Полный возврат через ${R.payKz>99?"более 99":fmt(R.payKz,1)} лет. На 100 км поезд экономит в ${fmt(R.ratio,0)} раз меньше денег, чем в Польше.`;
- if(rest)R.lanes.forEach(ln=>ln.g.setAttribute("transform",`translate(${X1},${ln.y})`));
+ if(rest)R.lanes.forEach(ln=>ln.g.setAttribute("transform",`translate(${X1},${ln.y}) scale(${TS()>1?1.3:1})`));
 }
 function stopRace(){if(rraf)cancelAnimationFrame(rraf);rraf=null;$("btnRace").textContent="Показать год работы";}
 function flash(ln,x){const c=rel("circle",{cx:x,cy:ln.y,r:6,fill:"none",stroke:"var(--lime)","stroke-width":3},ln.fx);const t0=performance.now();
@@ -428,7 +470,7 @@ $("btnRace").addEventListener("click",()=>{
    else{ln.x+=SPEED*dt;const e=ln.ev[ln.i];
     if(e&&ln.x>=e.x){ln.x=e.x;ln.pause=e.type==="stop"?0.45:0.22;flash(ln,e.x);ln.i++;}
     if(ln.x>=X1){ln.x=X0;ln.i=0;}}
-   ln.g.setAttribute("transform",`translate(${ln.x},${ln.y})`);});
+   ln.g.setAttribute("transform",`translate(${ln.x},${ln.y}) scale(${TS()>1?1.3:1})`);});
   setRaceState(Math.min(12,el_/DUR*12),false);
   if(el_<DUR)rraf=requestAnimationFrame(step);else{rraf=null;$("btnRace").textContent="Показать год работы";setRaceState(12,true);}};
  rraf=requestAnimationFrame(step);});
@@ -465,6 +507,7 @@ btnSound.addEventListener("click",()=>{const on=Chug.toggle();paintSound();if(on
 
 /* Анимация поезда */
 let raf=null;
+const TS=()=>window.innerWidth<640?2.2:1;
 function stopTrain(){Chug.halt();if(raf)cancelAnimationFrame(raf);raf=null;train.setAttribute("visibility","hidden");btnTrain.textContent="Запустить поезд";}
 function at(pts,f){const seg=[];let tot=0;for(let i=1;i<pts.length;i++){const l=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);seg.push(l);tot+=l;}
  let d=f*tot;for(let i=0;i<seg.length;i++){if(d<=seg[i]||i===seg.length-1){const t=seg[i]?Math.min(1,d/seg[i]):0,a=pts[i],b=pts[i+1];
@@ -473,12 +516,16 @@ function showTrip(f){$("tKm").textContent=fmt(cur.km*f,0);$("tKzt").textContent=
 btnTrain.addEventListener("click",()=>{
  if(raf){stopTrain();return;}if(!cur)return;
  $("trip").hidden=false;
- if(reduce){showTrip(1);const[x,y]=at(cur.pts,1);train.setAttribute("transform",`translate(${x},${y})`);train.setAttribute("visibility","visible");return;}
+ if(reduce){showTrip(1);const[x,y]=at(cur.pts,1);train.setAttribute("transform",`translate(${x},${y}) scale(${TS()})`);train.setAttribute("visibility","visible");return;}
  const dur=Math.min(14000,Math.max(5000,cur.km*5));let t0=null;train.setAttribute("visibility","visible");btnTrain.textContent="Остановить";Chug.start();let fin=false;
  const step=ts=>{if(!t0)t0=ts;const f=Math.min(1,(ts-t0)/dur);const[x,y,ang]=at(cur.pts,f);
-  train.setAttribute("transform",`translate(${x},${y}) rotate(${ang})`);showTrip(f);
+  train.setAttribute("transform",`translate(${x},${y}) rotate(${ang}) scale(${TS()})`);showTrip(f);
   if(!fin&&(ts-t0)>dur-1800){fin=true;Chug.finish();}
   if(f<1)raf=requestAnimationFrame(step);else{raf=null;btnTrain.textContent="Запустить поезд";}};
  raf=requestAnimationFrame(step);});
+let _w=window.innerWidth<640;window.addEventListener("resize",()=>{const m=window.innerWidth<640;if(m!==_w){_w=m;update();}});
 update();
 </script>
+
+</body>
+</html>
